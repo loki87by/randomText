@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./App.css" />
+    <title>Генератор новых слов</title>
+  </head>
+  <body>
+    <main>
+      <h1>Генератор новых слов</h1>
+      <p class="hint">Слова создаются по слоговым моделям русского языка.</p>
+
+      <form id="word-form">
+        <fieldset>
+          <div class="field">
+            <label for="pl">Часть речи</label>
+            <select id="pl" name="partOfSpeech">
+              <option value="0" disabled selected>Выберите часть речи</option>
+              <option value="noun">Существительное</option>
+              <option value="adjective">Прилагательное</option>
+              <option value="verb">Глагол</option>
+            </select>
+          </div>
+
+          <div class="field hide">
+            <label for="gender">Пол</label>
+            <select id="gender" name="gender">
+              <option value="any" selected>Любой</option>
+              <option value="male">Мужской</option>
+              <option value="female">Женский</option>
+              <option value="neuter">Средний</option>
+            </select>
+          </div>
+
+          <div class="field hide">
+            <label for="number">Число</label>
+            <select id="number" name="number">
+              <option value="any" selected>Любое</option>
+              <option value="singular">Единственное</option>
+              <option value="plural">Множественное</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <button type="button">Показать дополнительные опции</button>
+
+        <fieldset class="hide">
+          <div class="field">
+            <label for="required-letters">Обязательные буквы</label>
+            <input
+              id="required-letters"
+              name="requiredLetters"
+              type="text"
+              maxlength="10"
+              placeholder="например: кот"
+            />
+          </div>
+
+          <div class="field">
+            <label for="preferred-letters">Желательные буквы</label>
+            <input
+              id="preferred-letters"
+              name="preferredLetters"
+              type="text"
+              maxlength="10"
+              placeholder="например: ра"
+            />
+          </div>
+        </fieldset>
+
+        <fieldset class="hide">
+          <div class="field">
+            <label for="length">Количество букв (или случайное)</label>
+            <input
+              id="length"
+              name="length"
+              type="number"
+              min="2"
+              max="20"
+              placeholder="Например, 6"
+            />
+          </div>
+
+          <div class="field">
+            <label for="mask">Маска (необязательно)</label>
+            <input
+              id="mask"
+              name="mask"
+              type="text"
+              maxlength="30"
+              placeholder="например: сгс или [кп]г?ь"
+            />
+            <small class="hint-small"> !с — согласная, !г — гласная, </small>
+            <small class="hint-small"> ? — любая, * — любое кол-во </small>
+            <small class="hint-small"> [аоу] — набор, [^аоу] — кроме </small>
+          </div>
+        </fieldset>
+
+        <button type="submit">Сгенерировать слово</button>
+      </form>
+
+      <section id="result" class="result" hidden>
+        <h2>Новое слово</h2>
+        <div class="word-row">
+          <p class="word" id="word-output">—</p>
+          <button
+            type="button"
+            id="copy-btn"
+            class="copy-btn"
+            title="Скопировать"
+          >
+            ⧉
+          </button>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="./App.js"></script>
+  </body>
+</html>
