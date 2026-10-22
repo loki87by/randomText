@@ -1,15 +1,16 @@
 import { VOWELS, random, isPairAllowed, permutations } from "./consts.js";
 import {
-  normalizeLetters,
-  applyRequiredLetters,
   applyPreferredLetters,
-  generateSafeSyllable,
-  pickEnding,
-  generatePerfectiveInfinitive,
+  applyRequiredLetters,
   applyVerbForm,
-  generateVerb,
-  parseMask,
   generateFromMask,
+  generatePerfectiveInfinitive,
+  generateSafeSyllable,
+  generateVerb,
+  ensureConsonantEnding,
+  normalizeLetters,
+  parseMask,
+  pickEnding,
 } from "./helpers.js";
 
 const form = document.getElementById("word-form");
