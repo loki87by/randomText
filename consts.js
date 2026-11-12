@@ -7,8 +7,6 @@ const FORBIDDEN_AFTER_VELARS = ["ы", "я", "ё", "ю"];
 // После мягкого знака — только мягкие гласные (е, ё, и, ю, я)
 // После твёрдого знака — только йотированные (е, ё, ю, я)
 const HARD_VOWELS = ["а", "о", "у", "э", "ы"];
-const SOFT_VOWELS = ["е", "ё", "и", "ю", "я"];
-const IOTATED_VOWELS = ["е", "ё", "ю", "я"];
 const FORBIDDEN_AFTER_SOFT_SIGN = HARD_VOWELS;
 const FORBIDDEN_AFTER_HARD_SIGN = [...HARD_VOWELS, "и"];
 export const CONSONANTS = "бвгджзклмнпрстфхцчшщ".split("");

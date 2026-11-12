@@ -41,6 +41,11 @@ h1 {
   color: #888;
 }
 
+.hint-quant {
+  cursor: help;
+  border-bottom: 1px dashed #aaa;
+}
+
 fieldset {
   width: 100%;
   padding: 0;
