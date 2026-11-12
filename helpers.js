@@ -1,4 +1,4 @@
-import {
+﻿import {
   CONSONANTS,
   VOWELS,
   VERB_SPECIAL_ENDINGS,
@@ -6,7 +6,6 @@ import {
   random,
   isPairAllowed,
   tryInsertLetter,
-  tokenOptions,
   hasTripleConsonants,
 } from "./consts.js";
 
@@ -186,177 +185,64 @@ export function generateVerb({ gender, number, targetLength }) {
   const infinitive = generatePerfectiveInfinitive(targetLength);
   return applyVerbForm(infinitive, gender, number);
 }
+// --- Маска через RegExp ---
+//
+// Пользовательский синтаксис маски:
+//   !с — согласная, !г — гласная
+//   Всё остальное — стандартный regex (?, *, +, {n}, {n,m}, [], [^], (), |)
+//
+// Алгоритм:
+//   1. Заменяем !с / !г на соответствующие символьные классы [бв…] / [ае…]
+//   2. Создаём из полученной строки RegExp
+//   3. Генерируем случайные строки, пока одна не совпадёт с regexp
 
-// --- Маска ---
-// Разбирает маску в массив токенов:
+const CONSONANTS_RE = `[${CONSONANTS.join("")}]`;
+const VOWELS_RE = `[${VOWELS.join("")}]`;
+
 export function parseMask(mask) {
-  const tokens = [];
-  let i = 0;
-
-  while (i < mask.length) {
-    const ch = mask[i];
-
-    // !с / !г — метасимволы (согласная / гласная)
-    if (ch === "!" && i + 1 < mask.length) {
-      const next = mask[i + 1].toLowerCase();
-      if (next === "с") {
-        tokens.push({ type: "consonant" });
-        i += 2;
-        continue;
-      }
-      if (next === "г") {
-        tokens.push({ type: "vowel" });
-        i += 2;
-        continue;
-      }
-      // !? !* ![ !] — экранированные литералы, но это не буквы — пропускаем
-      // либо можно трактовать как литерал (для ? * [ ]), но для алфавита не нужно
-      tokens.push({ type: "literal", char: next });
-      i += 2;
-      continue;
-    }
-
-    // ? — любая буква
-    if (ch === "?") {
-      tokens.push({ type: "any" });
-      i++;
-      continue;
-    }
-
-    // * — 0+ любых букв
-    if (ch === "*") {
-      tokens.push({ type: "star" });
-      i++;
-      continue;
-    }
-
-    // [аоу] / [^аоу] — набор / кроме набора
-    if (ch === "[") {
-      let j = i + 1;
-      let negate = false;
-      if (mask[j] === "^") {
-        negate = true;
-        j++;
-      }
-      const chars = [];
-      while (j < mask.length && mask[j] !== "]") {
-        const c = mask[j].toLowerCase();
-        if (/[а-яё]/.test(c)) chars.push(c);
-        j++;
-      }
-      if (j >= mask.length) {
-        tokens.push({ type: "literal", char: ch });
-        i++;
-      } else {
-        tokens.push({ type: negate ? "notset" : "set", chars });
-        i = j + 1;
-      }
-      continue;
-    }
-
-    // Всё остальное, что является буквой, — литерал (включая «с» и «г»!)
-    const lower = ch.toLowerCase();
-    if (/[а-яё]/.test(lower)) {
-      tokens.push({ type: "literal", char: lower });
-    }
-    i++;
+  if (!mask || !mask.trim()) return null;
+  const lowered = mask.toLowerCase();
+  // Заменяем !с / !г на группы символов
+  const regexStr = lowered
+    .replace(/!с/g, CONSONANTS_RE)
+    .replace(/!г/g, VOWELS_RE);
+  try {
+    return new RegExp(`^${regexStr}$`);
+  } catch {
+    return null;
   }
-
-  return tokens;
 }
 
-// Генерирует слово по маске. Возвращает строку или null.
+// Генерирует случайную букву из всего алфавита
+function randomLetter() {
+  const all = [...VOWELS, ...CONSONANTS];
+  return all[Math.floor(Math.random() * all.length)];
+}
+
+// Генерирует слово по маске (regexp). Возвращает строку или null.
 export function generateFromMask(
-  tokens,
+  regex,
   targetLength = null,
   requiredLetters = [],
 ) {
-  const hasStar = tokens.some((t) => t.type === "star");
-  const usedRequired = new Set();
-  let word = "";
+  if (!regex) return null;
 
-  for (let idx = 0; idx < tokens.length; idx++) {
-    const token = tokens[idx];
-
-    if (token.type === "star") {
-      const rest = tokens.slice(idx + 1);
-      let minRest = 0;
-
-      for (const t of rest) if (t.type !== "star") minRest += 1;
-      let extra;
-
-      if (targetLength) {
-        const available = targetLength - word.length - minRest;
-
-        if (available < 0) return null;
-        extra =
-          rest.length === 0
-            ? available
-            : Math.floor(Math.random() * (available + 1));
-      } else {
-        extra = Math.floor(Math.random() * ((rest.length === 0 ? 4 : 3) + 1));
-      }
-
-      for (let k = 0; k < extra; k++) {
-        const last = word[word.length - 1] || null;
-        let placed = false;
-
-        for (const l of requiredLetters) {
-          if (usedRequired.has(l)) continue;
-          if (isPairAllowed(last, l)) {
-            word += l;
-            usedRequired.add(l);
-            placed = true;
-            break;
-          }
-        }
-        if (placed) continue;
-        const options = [...VOWELS, ...CONSONANTS].filter((c) =>
-          isPairAllowed(last, c),
-        );
-
-        if (options.length === 0) break;
-        word += random(options);
-      }
-      continue;
+  for (let attempt = 0; attempt < 1000; attempt++) {
+    const len = targetLength || Math.floor(Math.random() * 10) + 3;
+    let word = "";
+    for (let i = 0; i < len; i++) {
+      word += randomLetter();
     }
 
-    // Сначала — попытка вставить обязательную букву, если токен это позволяет
-    let placed = false;
-    if (!hasStar) {
-      const last = word[word.length - 1] || null;
-      const tokenOpts = tokenOptions(token);
-      
-      for (const l of shuffle(requiredLetters)) {
-        if (usedRequired.has(l)) continue;
-        if (!tokenOpts.includes(l)) continue;
-        if (!isPairAllowed(last, l)) continue;
-        word += l;
-        usedRequired.add(l);
-        placed = true;
-        break;
-      }
-    }
-    if (placed) continue;
+    if (!regex.test(word)) continue;
+    if (hasTripleConsonants(word)) continue;
+    if (word.length < 2) continue;
 
-    // Иначе — обычный случайный выбор
-    const options = tokenOptions(token);
-    const last = word[word.length - 1] || null;
-    const allowed = options.filter((c) => isPairAllowed(last, c));
-    if (allowed.length === 0) return null;
-    word += random(allowed);
+    // Проверяем обязательные буквы
+    const allRequired = requiredLetters.every((l) => word.includes(l));
+    if (!allRequired) continue;
+
+    return word;
   }
-
-  // Если задана длина и слово не совпало — провал
-  if (targetLength && word.length !== targetLength) return null;
-
-  // Если есть обязательные, которые не вставились — провал
-  if (!hasStar) {
-    for (const l of requiredLetters) {
-      if (!usedRequired.has(l) && !word.includes(l)) return null;
-    }
-  }
-
-  if (hasTripleConsonants(word)) return null;
-  return word.length >= 2 ? word : null;
+  return null;
 }

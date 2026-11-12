@@ -4,6 +4,13 @@ const FORBIDDEN_AFTER_HUSHING = ["я", "ю", "ы"];
 const NO_START = ["ы", "ь", "ъ", "й"];
 const VELARS = ["к", "г", "х"];
 const FORBIDDEN_AFTER_VELARS = ["ы", "я", "ё", "ю"];
+// После мягкого знака — только мягкие гласные (е, ё, и, ю, я)
+// После твёрдого знака — только йотированные (е, ё, ю, я)
+const HARD_VOWELS = ["а", "о", "у", "э", "ы"];
+const SOFT_VOWELS = ["е", "ё", "и", "ю", "я"];
+const IOTATED_VOWELS = ["е", "ё", "ю", "я"];
+const FORBIDDEN_AFTER_SOFT_SIGN = HARD_VOWELS;
+const FORBIDDEN_AFTER_HARD_SIGN = [...HARD_VOWELS, "и"];
 export const CONSONANTS = "бвгджзклмнпрстфхцчшщ".split("");
 export const VOWELS = "аеёиоуыэюя".split("");
 export const VERB_SPECIAL_ENDINGS = [
@@ -51,8 +58,11 @@ export function isPairAllowed(prevChar, nextChar) {
     return false;
   }
   // после к/г/х — запрет ы/я/ё/ю
-  if (VELARS.includes(prevChar) && FORBIDDEN_AFTER_VELARS.includes(nextChar))
-    return false;
+  if (VELARS.includes(prevChar) && FORBIDDEN_AFTER_VELARS.includes(nextChar)) return false;
+  // после ь — запрет твёрдых гласных (а, о, у, э, ы)
+  if (prevChar === "ь" && FORBIDDEN_AFTER_SOFT_SIGN.includes(nextChar)) return false;
+  // после ъ — запрет твёрдых гласных и «и» (только йотированные)
+  if (prevChar === "ъ" && FORBIDDEN_AFTER_HARD_SIGN.includes(nextChar)) return false;
 
   if (VOWELS.includes(prevChar) && SIGNS.includes(nextChar)) return false;
   return true;

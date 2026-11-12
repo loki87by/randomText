@@ -40,10 +40,11 @@ function generateWord({
 }) {
   // === Ветка маски ===
   if (mask && mask.trim()) {
-    const tokens = parseMask(mask.trim());
+    const regex = parseMask(mask.trim());
+    if (!regex) return null;
 
     for (let attempt = 0; attempt < 100; attempt++) {
-      const word = generateFromMask(tokens, targetLength, requiredLetters);
+      const word = generateFromMask(regex, targetLength, requiredLetters);
 
       if (word) {
         if (preferredLetters && preferredLetters.length > 0 && !targetLength) {
